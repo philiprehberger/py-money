@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "philiprehberger-money"
-version = "0.1.0"
+version = "0.1.1"
 description = "Precise monetary calculations using integer cents with currency support and formatting"
 readme = "README.md"
 license = "MIT"
@@ -24,6 +24,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/philiprehberger/py-money"
+Homepage = "https://github.com/philiprehberger/py-money#readme"
 Repository = "https://github.com/philiprehberger/py-money"
 Issues = "https://github.com/philiprehberger/py-money/issues"
+Changelog = "https://github.com/philiprehberger/py-money/blob/main/CHANGELOG.md"
