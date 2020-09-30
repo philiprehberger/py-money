@@ -1,5 +1,9 @@
 # philiprehberger-money
 
+[![Tests](https://github.com/philiprehberger/py-money/actions/workflows/publish.yml/badge.svg)](https://github.com/philiprehberger/py-money/actions/workflows/publish.yml)
+[![PyPI version](https://img.shields.io/pypi/v/philiprehberger-money.svg)](https://pypi.org/project/philiprehberger-money/)
+[![License](https://img.shields.io/github/license/philiprehberger/py-money)](LICENSE)
+
 Precise monetary calculations using integer cents with currency support and formatting.
 
 ## Installation
