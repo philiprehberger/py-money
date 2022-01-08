@@ -117,6 +117,14 @@ m2 = Money.from_dict(d)   # Money(19.99 USD)
 | `.amount` | Major unit value as float |
 | `.decimals` | Currency decimal places |
 
+
+## Development
+
+```bash
+pip install -e .
+python -m pytest tests/ -v
+```
+
 ## License
 
 MIT
