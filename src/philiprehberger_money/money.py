@@ -109,6 +109,27 @@ class Money:
     def from_dict(cls, data: dict) -> Money:
         return cls(amount_cents=data["amount_cents"], currency=data["currency"])
 
+    def round_to_nearest(self, step: int) -> Money:
+        if step <= 0:
+            raise ValueError("step must be a positive integer")
+        remainder = self.amount_cents % step
+        if remainder == 0:
+            rounded = self.amount_cents
+        elif remainder >= step / 2:
+            rounded = self.amount_cents + (step - remainder)
+        else:
+            rounded = self.amount_cents - remainder
+        return Money(amount_cents=rounded, currency=self.currency)
+
+    def convert(self, target_currency: str, rate: float) -> Money:
+        target_currency = target_currency.upper()
+        target_decimals = CURRENCY_DECIMALS.get(target_currency, 2)
+        source_decimals = self.decimals
+        major_value = self.amount_cents / (10 ** source_decimals)
+        converted_major = major_value * rate
+        target_cents = round(converted_major * (10 ** target_decimals))
+        return Money(amount_cents=target_cents, currency=target_currency)
+
     def __neg__(self) -> Money:
         return self.negate()
 
