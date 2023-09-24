@@ -31,6 +31,8 @@ free = Money.zero("EUR")
 ### Arithmetic
 
 ```python
+from philiprehberger_money import Money
+
 a = Money.from_major(10.00, "USD")
 b = Money.from_major(3.50, "USD")
 
@@ -44,6 +46,8 @@ negated = -a           # -$10.00
 ### Safe Currency Handling
 
 ```python
+from philiprehberger_money import Money, CurrencyMismatchError
+
 usd = Money.from_major(10, "USD")
 eur = Money.from_major(10, "EUR")
 
@@ -53,6 +57,8 @@ usd + eur  # raises CurrencyMismatchError
 ### Allocation (Split Without Losing Cents)
 
 ```python
+from philiprehberger_money import Money
+
 total = Money.from_major(100.00, "USD")
 
 # Split 50/30/20
@@ -68,6 +74,8 @@ thirds = odd.allocate([1, 1, 1])
 ### Denomination Rounding
 
 ```python
+from philiprehberger_money import Money
+
 price = Money.from_major(1.23, "USD")
 
 # Round to nearest 5 cents
@@ -82,29 +90,58 @@ print(rounded.format(symbol="$"))  # "$1.20"
 ### Currency Conversion
 
 ```python
+from philiprehberger_money import Money
+
 usd = Money.from_major(100, "USD")
 
-# Convert USD to EUR at rate 0.92
+# Direct rate
 eur = usd.convert("EUR", 0.92)
 print(eur.format())  # "92.00 EUR"
 
-# Convert to zero-decimal currency
-jpy = usd.convert("JPY", 149.5)
-print(jpy.format(symbol="\u00a5"))  # "\u00a514950"
+# Using a rates dictionary
+eur = usd.convert(to="EUR", rates={"USD/EUR": 0.92})
+
+# Using a rate provider callable
+def get_rate(from_currency: str, to_currency: str) -> float:
+    return 0.92  # fetch from API, database, etc.
+
+eur = usd.convert(to="EUR", rate_provider=get_rate)
 ```
 
-### Formatting
+### Locale-Aware Formatting
 
 ```python
+from philiprehberger_money import Money
+
 price = Money.from_major(1234.56, "USD")
 
-print(price.format())           # "1234.56 USD"
-print(price.format(symbol="$")) # "$1234.56"
+print(price.format())                 # "1234.56 USD"
+print(price.format(symbol="$"))       # "$1234.56"
+print(price.format(locale="en_US"))   # "$1,234.56"
+print(price.format(locale="de_DE"))   # "$1.234,56"
+```
+
+### Rounding Modes
+
+```python
+from philiprehberger_money import Money, RoundingMode, set_default_rounding_mode
+
+# Per-instance rounding mode
+m = Money(amount_cents=5, currency="USD", rounding_mode=RoundingMode.ROUND_HALF_EVEN)
+result = m.divide(2)  # 2.5 -> 2 (banker's rounding)
+
+# Change rounding mode on existing instance
+m2 = m.with_rounding_mode(RoundingMode.ROUND_UP)
+
+# Set global default (affects all instances without explicit mode)
+set_default_rounding_mode(RoundingMode.ROUND_HALF_EVEN)
 ```
 
 ### Comparisons
 
 ```python
+from philiprehberger_money import Money
+
 a = Money.from_major(10, "USD")
 b = Money.from_major(20, "USD")
 
@@ -117,6 +154,8 @@ a.is_zero()      # False
 ### Zero-Decimal Currencies
 
 ```python
+from philiprehberger_money import Money
+
 yen = Money.from_major(1000, "JPY")
 print(yen.format(symbol="\u00a5"))  # "\u00a51000"
 ```
@@ -124,6 +163,8 @@ print(yen.format(symbol="\u00a5"))  # "\u00a51000"
 ### Serialization
 
 ```python
+from philiprehberger_money import Money
+
 m = Money.from_major(19.99, "USD")
 
 d = m.to_dict()           # {"amount_cents": 1999, "currency": "USD"}
@@ -134,8 +175,8 @@ m2 = Money.from_dict(d)   # Money(19.99 USD)
 
 | Function / Class | Description |
 |---|---|
-| `Money.from_major(amount, currency)` | Create from major units (dollars, euros, etc.) |
-| `Money.zero(currency)` | Create zero-value Money |
+| `Money.from_major(amount, currency, *, rounding_mode=None)` | Create from major units (dollars, euros, etc.) |
+| `Money.zero(currency, *, rounding_mode=None)` | Create zero-value Money |
 | `Money.from_dict(data)` | Create from dict |
 | `.add(other)` / `+` | Add two Money values (same currency) |
 | `.subtract(other)` / `-` | Subtract (same currency) |
@@ -143,14 +184,18 @@ m2 = Money.from_dict(d)   # Money(19.99 USD)
 | `.divide(divisor)` | Divide by number |
 | `.allocate(ratios)` | Split into parts without losing cents |
 | `.round_to_nearest(step)` | Round minor units to nearest multiple |
-| `.convert(target_currency, rate)` | Convert to another currency at given rate |
+| `.convert(to, rate=None, *, rates=None, rate_provider=None)` | Convert to another currency using a rate, rates dict, or callable |
+| `.format(symbol=None, *, locale=None)` | Format as string, optionally locale-aware |
+| `.with_rounding_mode(mode)` | Return copy with specified rounding mode |
 | `.negate()` / `-m` | Negate amount |
 | `.abs()` | Absolute value |
 | `.is_zero()` / `.is_positive()` / `.is_negative()` | Predicates |
-| `.format(symbol=None)` | Format as string |
 | `.to_dict()` | Serialize to dict |
 | `.amount` | Major unit value as float |
 | `.decimals` | Currency decimal places |
+| `RoundingMode` | Enum: ROUND_HALF_UP, ROUND_HALF_EVEN, ROUND_DOWN, ROUND_UP |
+| `set_default_rounding_mode(mode)` | Set global default rounding mode |
+| `get_default_rounding_mode()` | Get current global default rounding mode |
 | `CurrencyMismatchError` | Raised on mixed-currency operations |
 
 ## Development

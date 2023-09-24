@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0 (2026-03-28)
+
+- Add locale-aware formatting via `money.format(locale="en_US")` with proper currency symbols, thousands separators, and decimal places
+- Add currency exchange with pluggable rate providers: `rates` dict and `rate_provider` callable support on `convert()`
+- Add `RoundingMode` enum (ROUND_HALF_UP, ROUND_HALF_EVEN, ROUND_DOWN, ROUND_UP) configurable per-instance or globally
+- Add `with_rounding_mode()` method to create Money with a different rounding mode
+- Add `set_default_rounding_mode()` and `get_default_rounding_mode()` for global rounding configuration
+- Rounding modes affect `multiply()`, `divide()`, `allocate()`, and `convert()`
+
 ## 0.3.0 (2026-03-27)
 
 - Add `round_to_nearest(step)` for denomination rounding (e.g., nearest 5 cents)
