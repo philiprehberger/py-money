@@ -29,6 +29,7 @@ total = a + b          # $13.50
 diff = a - b           # $6.50
 doubled = a * 2        # $20.00
 split = a.divide(3)    # $3.33 (rounded)
+negated = -a           # -$10.00
 ```
 
 ### Safe Currency Handling
@@ -80,8 +81,37 @@ a.is_zero()      # False
 
 ```python
 yen = Money.from_major(1000, "JPY")
-print(yen.format(symbol="¥"))  # "¥1000"
+print(yen.format(symbol="\u00a5"))  # "\u00a51000"
 ```
+
+### Serialization
+
+```python
+m = Money.from_major(19.99, "USD")
+
+d = m.to_dict()           # {"amount_cents": 1999, "currency": "USD"}
+m2 = Money.from_dict(d)   # Money(19.99 USD)
+```
+
+## API Reference
+
+| Method | Description |
+|---|---|
+| `Money.from_major(amount, currency)` | Create from major units (dollars, euros, etc.) |
+| `Money.zero(currency)` | Create zero-value Money |
+| `Money.from_dict(data)` | Create from dict |
+| `.add(other)` / `+` | Add two Money values (same currency) |
+| `.subtract(other)` / `-` | Subtract (same currency) |
+| `.multiply(factor)` / `*` | Multiply by number |
+| `.divide(divisor)` | Divide by number |
+| `.allocate(ratios)` | Split into parts without losing cents |
+| `.negate()` / `-m` | Negate amount |
+| `.abs()` | Absolute value |
+| `.is_zero()` / `.is_positive()` / `.is_negative()` | Predicates |
+| `.format(symbol=None)` | Format as string |
+| `.to_dict()` | Serialize to dict |
+| `.amount` | Major unit value as float |
+| `.decimals` | Currency decimal places |
 
 ## License
 

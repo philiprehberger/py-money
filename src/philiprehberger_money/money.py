@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Self
 
 
@@ -29,8 +30,9 @@ class Money:
         decimals = CURRENCY_DECIMALS.get(currency, 2)
         factor = 10 ** decimals
         if isinstance(amount, str):
-            amount = float(amount)
-        cents = round(float(amount) * factor)
+            cents = round(Decimal(amount) * factor)
+        else:
+            cents = round(float(amount) * factor)
         return cls(amount_cents=cents, currency=currency)
 
     @classmethod
@@ -99,6 +101,16 @@ class Money:
 
     def negate(self) -> Money:
         return Money(amount_cents=-self.amount_cents, currency=self.currency)
+
+    def to_dict(self) -> dict:
+        return {"amount_cents": self.amount_cents, "currency": self.currency}
+
+    @classmethod
+    def from_dict(cls, data: dict) -> Money:
+        return cls(amount_cents=data["amount_cents"], currency=data["currency"])
+
+    def __neg__(self) -> Money:
+        return self.negate()
 
     def format(self, symbol: str | None = None) -> str:
         decimals = self.decimals
