@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "philiprehberger-money"
-version = "0.2.1"
+version = "0.2.2"
 description = "Precise monetary calculations using integer cents with currency support and formatting"
 readme = "README.md"
 license = "MIT"
