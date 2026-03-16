@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3
+
+- Add Development section to README
+- Add wheel build target to pyproject.toml
+
 ## 0.2.0
 
 - Fix `from_major` string precision using `Decimal` instead of float conversion
