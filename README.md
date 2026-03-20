@@ -97,7 +97,7 @@ d = m.to_dict()           # {"amount_cents": 1999, "currency": "USD"}
 m2 = Money.from_dict(d)   # Money(19.99 USD)
 ```
 
-## API Reference
+## API
 
 | Method | Description |
 |---|---|
