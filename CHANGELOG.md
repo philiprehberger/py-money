@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 (2026-03-27)
+
+- Add `round_to_nearest(step)` for denomination rounding (e.g., nearest 5 cents)
+- Add `convert(target_currency, rate)` for currency conversion
+- Add 8 badges, Support section, and issue templates to README
+- Add `[tool.pytest.ini_options]` and `[tool.mypy]` to pyproject.toml
+
 ## 0.2.3
 
 - Add Development section to README
