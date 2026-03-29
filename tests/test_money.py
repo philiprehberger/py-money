@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import pytest
 
-from philiprehberger_money import Money, CurrencyMismatchError
+from philiprehberger_money import (
+    Money,
+    CurrencyMismatchError,
+    RoundingMode,
+    get_default_rounding_mode,
+    set_default_rounding_mode,
+)
 
 
 # --- Creation ---
@@ -243,3 +249,202 @@ def test_repr():
 def test_str():
     m = Money.from_major(10, "USD")
     assert str(m) == "10.00 USD"
+
+
+# --- round_to_nearest ---
+
+def test_round_to_nearest_5_cents():
+    m = Money.from_major("1.23", "USD")
+    assert m.round_to_nearest(5).amount_cents == 125
+
+def test_round_to_nearest_10_cents():
+    m = Money.from_major("1.23", "USD")
+    assert m.round_to_nearest(10).amount_cents == 120
+
+def test_round_to_nearest_already_exact():
+    m = Money.from_major("1.25", "USD")
+    assert m.round_to_nearest(5).amount_cents == 125
+
+def test_round_to_nearest_invalid_step():
+    with pytest.raises(ValueError):
+        Money.from_major(10, "USD").round_to_nearest(0)
+
+
+# --- convert (basic, positional rate) ---
+
+def test_convert_usd_to_eur():
+    m = Money.from_major(100, "USD")
+    eur = m.convert("EUR", 0.92)
+    assert eur.amount_cents == 9200
+    assert eur.currency == "EUR"
+
+def test_convert_to_zero_decimal():
+    m = Money.from_major(100, "USD")
+    jpy = m.convert("JPY", 149.5)
+    assert jpy.amount_cents == 14950
+    assert jpy.currency == "JPY"
+
+
+# --- convert with rates dict ---
+
+def test_convert_with_rates_dict():
+    m = Money.from_major(100, "USD")
+    eur = m.convert(to="EUR", rates={"USD/EUR": 0.92})
+    assert eur.amount_cents == 9200
+    assert eur.currency == "EUR"
+
+def test_convert_with_rates_dict_missing_key():
+    m = Money.from_major(100, "USD")
+    with pytest.raises(KeyError, match="USD/GBP"):
+        m.convert(to="GBP", rates={"USD/EUR": 0.92})
+
+
+# --- convert with rate_provider callable ---
+
+def test_convert_with_rate_provider():
+    def provider(from_cur: str, to_cur: str) -> float:
+        if from_cur == "USD" and to_cur == "EUR":
+            return 0.92
+        raise ValueError("Unknown pair")
+
+    m = Money.from_major(100, "USD")
+    eur = m.convert(to="EUR", rate_provider=provider)
+    assert eur.amount_cents == 9200
+
+def test_convert_rate_provider_error():
+    def provider(from_cur: str, to_cur: str) -> float:
+        raise ValueError("No rate")
+
+    m = Money.from_major(100, "USD")
+    with pytest.raises(ValueError, match="No rate"):
+        m.convert(to="GBP", rate_provider=provider)
+
+
+# --- convert validation ---
+
+def test_convert_no_rate_source():
+    m = Money.from_major(100, "USD")
+    with pytest.raises(ValueError, match="exactly one"):
+        m.convert(to="EUR")
+
+def test_convert_multiple_rate_sources():
+    m = Money.from_major(100, "USD")
+    with pytest.raises(ValueError, match="exactly one"):
+        m.convert(to="EUR", rate=0.92, rates={"USD/EUR": 0.92})
+
+
+# --- Locale-aware formatting ---
+
+def test_format_locale_en_us():
+    m = Money.from_major(1234.56, "USD")
+    result = m.format(locale="en_US")
+    # Should contain a currency symbol and the number with grouping.
+    assert "$" in result
+    assert "1" in result and "234" in result
+
+def test_format_locale_de_de():
+    m = Money.from_major(1234.56, "EUR")
+    result = m.format(locale="de_DE")
+    # German locale uses comma as decimal separator.
+    assert "\u20ac" in result
+
+def test_format_locale_negative():
+    m = Money(amount_cents=-100050, currency="USD")
+    result = m.format(locale="en_US")
+    assert result.startswith("-")
+
+def test_format_locale_jpy():
+    m = Money.from_major(10000, "JPY")
+    result = m.format(locale="en_US")
+    assert "\u00a5" in result
+
+
+# --- Rounding modes ---
+
+def test_rounding_mode_half_up():
+    m = Money(amount_cents=5, currency="USD", rounding_mode=RoundingMode.ROUND_HALF_UP)
+    result = m.divide(2)
+    # 5 / 2 = 2.5 -> rounds to 3 with HALF_UP
+    assert result.amount_cents == 3
+
+def test_rounding_mode_half_even():
+    m = Money(amount_cents=5, currency="USD", rounding_mode=RoundingMode.ROUND_HALF_EVEN)
+    result = m.divide(2)
+    # 5 / 2 = 2.5 -> rounds to 2 with HALF_EVEN (banker's rounding)
+    assert result.amount_cents == 2
+
+def test_rounding_mode_down():
+    m = Money(amount_cents=7, currency="USD", rounding_mode=RoundingMode.ROUND_DOWN)
+    result = m.divide(2)
+    # 7 / 2 = 3.5 -> rounds to 3 with DOWN
+    assert result.amount_cents == 3
+
+def test_rounding_mode_up():
+    m = Money(amount_cents=7, currency="USD", rounding_mode=RoundingMode.ROUND_UP)
+    result = m.divide(2)
+    # 7 / 2 = 3.5 -> rounds to 4 with UP
+    assert result.amount_cents == 4
+
+def test_rounding_mode_on_multiply():
+    m = Money(amount_cents=10, currency="USD", rounding_mode=RoundingMode.ROUND_DOWN)
+    result = m.multiply(0.33)
+    # 10 * 0.33 = 3.3 -> rounds to 3 with DOWN
+    assert result.amount_cents == 3
+
+def test_rounding_mode_on_multiply_up():
+    m = Money(amount_cents=10, currency="USD", rounding_mode=RoundingMode.ROUND_UP)
+    result = m.multiply(0.33)
+    # 10 * 0.33 = 3.3 -> rounds to 4 with UP
+    assert result.amount_cents == 4
+
+def test_with_rounding_mode():
+    m = Money.from_major(10, "USD")
+    m2 = m.with_rounding_mode(RoundingMode.ROUND_DOWN)
+    assert m2.rounding_mode == RoundingMode.ROUND_DOWN
+    assert m2.amount_cents == m.amount_cents
+
+def test_from_major_with_rounding_mode():
+    m = Money.from_major(10, "USD", rounding_mode=RoundingMode.ROUND_DOWN)
+    assert m.rounding_mode == RoundingMode.ROUND_DOWN
+
+def test_allocate_with_rounding_mode():
+    m = Money(amount_cents=10, currency="USD", rounding_mode=RoundingMode.ROUND_DOWN)
+    parts = m.allocate([1, 1, 1])
+    assert sum(p.amount_cents for p in parts) == 10
+
+
+# --- Global default rounding mode ---
+
+def test_global_default_rounding_mode():
+    original = get_default_rounding_mode()
+    try:
+        set_default_rounding_mode(RoundingMode.ROUND_DOWN)
+        m = Money(amount_cents=7, currency="USD")
+        result = m.divide(2)
+        assert result.amount_cents == 3
+    finally:
+        set_default_rounding_mode(original)
+
+def test_instance_rounding_overrides_global():
+    original = get_default_rounding_mode()
+    try:
+        set_default_rounding_mode(RoundingMode.ROUND_DOWN)
+        m = Money(amount_cents=7, currency="USD", rounding_mode=RoundingMode.ROUND_UP)
+        result = m.divide(2)
+        assert result.amount_cents == 4
+    finally:
+        set_default_rounding_mode(original)
+
+
+# --- Hash support ---
+
+def test_hash_equal_values():
+    a = Money.from_major(10, "USD")
+    b = Money.from_major(10, "USD")
+    assert hash(a) == hash(b)
+
+def test_money_in_set():
+    a = Money.from_major(10, "USD")
+    b = Money.from_major(10, "USD")
+    s = {a, b}
+    assert len(s) == 1
