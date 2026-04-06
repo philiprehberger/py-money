@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "philiprehberger-money"
-version = "0.4.1"
-description = "Precise monetary calculations using integer cents with currency support and formatting"
+version = "0.5.0"
+description = "Precise monetary calculations using integer cents with currency support and formatting."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"

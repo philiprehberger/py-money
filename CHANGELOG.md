@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0 (2026-04-06)
+
+- Add `Money.sum(moneys)` class method to sum a list of Money values
+- Add `percentage(pct)` to calculate a percentage of a money value
+- Add `split_even(n)` to evenly split into n parts with remainder distribution
+
 ## 0.4.1 (2026-03-31)
 
 - Standardize README to 3-badge format with emoji Support section
@@ -21,12 +27,12 @@
 - Add 8 badges, Support section, and issue templates to README
 - Add `[tool.pytest.ini_options]` and `[tool.mypy]` to pyproject.toml
 
-## 0.2.3
+## 0.2.3 (2026-03-25)
 
 - Add Development section to README
 - Add wheel build target to pyproject.toml
 
-## 0.2.0
+## 0.2.0 (2026-03-23)
 
 - Fix `from_major` string precision using `Decimal` instead of float conversion
 - Add `to_dict()` and `from_dict()` for serialization
@@ -34,9 +40,9 @@
 - Add comprehensive test suite (~30 tests)
 - Add API reference table to README
 
-## 0.1.1
+## 0.1.1 (2026-03-12)
 
 - Add project URLs to pyproject.toml
 
-## 0.1.0
+## 0.1.0 (2026-03-10)
 - Initial release
