@@ -360,6 +360,53 @@ class Money:
         prefix = "-" if self.amount_cents < 0 else ""
         return f"{prefix}{currency_symbol}{number_str}"
 
+    @classmethod
+    def sum(cls, moneys: list[Money]) -> Money:
+        """Sum a list of Money values.
+
+        All values must share the same currency.
+
+        Args:
+            moneys: List of Money instances to sum.
+
+        Returns:
+            A new Money with the total amount.
+
+        Raises:
+            ValueError: If the list is empty.
+            CurrencyMismatchError: If currencies differ.
+        """
+        if not moneys:
+            raise ValueError("Cannot sum an empty list")
+        total = moneys[0]
+        for m in moneys[1:]:
+            total = total.add(m)
+        return total
+
+    def percentage(self, pct: float) -> Money:
+        """Calculate a percentage of this money value.
+
+        Args:
+            pct: Percentage value (e.g. 15 for 15%).
+
+        Returns:
+            A new Money representing the percentage.
+        """
+        return self.multiply(pct / 100)
+
+    def split_even(self, n: int) -> list[Money]:
+        """Split evenly into n parts, distributing remainder cents.
+
+        Args:
+            n: Number of parts to split into (must be >= 1).
+
+        Returns:
+            A list of n Money values that sum to the original.
+        """
+        if n < 1:
+            raise ValueError("n must be >= 1")
+        return self.allocate([1] * n)
+
     def __neg__(self) -> Money:
         return self.negate()
 

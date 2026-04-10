@@ -14,6 +14,13 @@ pip install philiprehberger-money
 
 ## Usage
 
+```python
+from philiprehberger_money import Money
+
+price = Money.from_major(19.99, "USD")
+print(price.format(symbol="$"))  # "$19.99"
+```
+
 ### Creating Money
 
 ```python
@@ -166,6 +173,36 @@ d = m.to_dict()           # {"amount_cents": 1999, "currency": "USD"}
 m2 = Money.from_dict(d)   # Money(19.99 USD)
 ```
 
+### Sum Multiple Values
+
+```python
+from philiprehberger_money import Money
+
+items = [Money.from_major(10, "USD"), Money.from_major(20, "USD"), Money.from_major(30, "USD")]
+total = Money.sum(items)
+print(total.format(symbol="$"))  # "$60.00"
+```
+
+### Percentage
+
+```python
+from philiprehberger_money import Money
+
+price = Money.from_major(200, "USD")
+tip = price.percentage(15)
+print(tip.format(symbol="$"))  # "$30.00"
+```
+
+### Even Split
+
+```python
+from philiprehberger_money import Money
+
+bill = Money.from_major(100, "USD")
+shares = bill.split_even(3)
+# [Money($33.34), Money($33.33), Money($33.33)]
+```
+
 ## API
 
 | Function / Class | Description |
@@ -188,6 +225,9 @@ m2 = Money.from_dict(d)   # Money(19.99 USD)
 | `.to_dict()` | Serialize to dict |
 | `.amount` | Major unit value as float |
 | `.decimals` | Currency decimal places |
+| `Money.sum(moneys)` | Sum a list of Money values (same currency) |
+| `.percentage(pct)` | Calculate a percentage of this money value |
+| `.split_even(n)` | Split evenly into n parts, distributing remainders |
 | `RoundingMode` | Enum: ROUND_HALF_UP, ROUND_HALF_EVEN, ROUND_DOWN, ROUND_UP |
 | `set_default_rounding_mode(mode)` | Set global default rounding mode |
 | `get_default_rounding_mode()` | Get current global default rounding mode |

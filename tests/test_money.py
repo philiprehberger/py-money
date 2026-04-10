@@ -448,3 +448,66 @@ def test_money_in_set():
     b = Money.from_major(10, "USD")
     s = {a, b}
     assert len(s) == 1
+
+
+def test_sum_money():
+    items = [
+        Money.from_major(10, "USD"),
+        Money.from_major(20, "USD"),
+        Money.from_major(30, "USD"),
+    ]
+    result = Money.sum(items)
+    assert result.amount_cents == 6000
+    assert result.currency == "USD"
+
+
+def test_sum_empty():
+    try:
+        Money.sum([])
+        assert False, "Should have raised ValueError"
+    except ValueError:
+        pass
+
+
+def test_sum_currency_mismatch():
+    items = [Money.from_major(10, "USD"), Money.from_major(10, "EUR")]
+    try:
+        Money.sum(items)
+        assert False, "Should have raised CurrencyMismatchError"
+    except CurrencyMismatchError:
+        pass
+
+
+def test_percentage():
+    price = Money.from_major(200, "USD")
+    tip = price.percentage(15)
+    assert tip.amount_cents == 3000  # $30.00
+
+
+def test_percentage_small():
+    price = Money.from_major(10, "USD")
+    tax = price.percentage(8.5)
+    assert tax.amount_cents == 85  # $0.85
+
+
+def test_split_even():
+    total = Money.from_major(10, "USD")
+    parts = total.split_even(3)
+    assert len(parts) == 3
+    assert sum(p.amount_cents for p in parts) == 1000
+
+
+def test_split_even_one():
+    total = Money.from_major(50, "USD")
+    parts = total.split_even(1)
+    assert len(parts) == 1
+    assert parts[0].amount_cents == 5000
+
+
+def test_split_even_invalid():
+    total = Money.from_major(10, "USD")
+    try:
+        total.split_even(0)
+        assert False, "Should have raised ValueError"
+    except ValueError:
+        pass
